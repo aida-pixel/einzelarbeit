@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitale Weiterempfehlung im Retail Banking &mdash; interaktiv</title>
+<style>
+  :root{ --red:#EC0016; --red-d:#b9000f; --ink:#1a1a1a; --txt:#33373b; --grey:#6b6b6b; --lgrey:#8c8c8c;
+         --line:#e7e7e9; --cardb:#e9e9e9; --bg:#f4f5f6; --slate:#16263a; --green:#1c7d3b; --amber:#b07d1f; }
+  *{ box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body{ margin:0; background:var(--bg); color:var(--txt);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif; line-height:1.7; }
+  a{ color:var(--red); text-decoration:none; }
+
+  /* top nav */
+  .nav{ position:sticky; top:0; z-index:50; background:#fff; border-bottom:1px solid var(--line); }
+  .nav .bar{ max-width:1080px; margin:0 auto; display:flex; align-items:center; gap:22px; padding:0 22px; height:60px; }
+  .nav .brand{ font-size:24px; font-weight:700; color:var(--red); letter-spacing:.5px; } .nav .brand img{ height:24px; display:block; margin-bottom:1px; }
+  .nav .brand small{ display:block; font-size:10px; font-weight:600; color:var(--grey); letter-spacing:.3px; margin-top:-4px; }
+  .nav .menu{ display:flex; gap:4px; margin-left:auto; flex-wrap:wrap; }
+  .nav .menu button{ background:none; border:none; font:inherit; font-size:13.5px; color:var(--txt); cursor:pointer;
+        padding:8px 11px; border-bottom:2px solid transparent; }
+  .nav .menu button:hover{ color:var(--red); }
+  .nav .menu button.active{ color:var(--red); border-bottom-color:var(--red); font-weight:600; }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:42px 22px 80px; }
+  .view{ display:none; animation:fade .25s ease; }
+  .view.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  h1{ font-size:30px; font-weight:700; color:var(--ink); line-height:1.25; margin:0 0 10px; }
+  h2{ font-size:21px; font-weight:700; color:var(--ink); margin:34px 0 10px; padding-left:14px; border-left:4px solid var(--red); }
+  h3{ font-size:16px; font-weight:700; color:var(--ink); margin:24px 0 6px; }
+  p{ margin:0 0 14px; }
+  .kicker{ color:var(--red); font-weight:700; font-size:13px; letter-spacing:.6px; text-transform:uppercase; margin-bottom:10px; }
+  .lead{ font-size:17px; color:#222; }
+  .muted{ color:var(--grey); }
+  .small{ font-size:13.5px; }
+  ul{ margin:0 0 14px; padding-left:20px; } li{ margin:4px 0; }
+
+  .crumbs{ font-size:12.5px; color:var(--lgrey); margin-bottom:6px; }
+  .pager{ display:flex; justify-content:space-between; gap:12px; margin-top:48px; padding-top:20px; border-top:1px solid var(--line); }
+  .pager button{ background:#fff; border:1px solid var(--cardb); border-radius:10px; padding:11px 16px; font:inherit; font-size:14px; cursor:pointer; color:var(--ink); display:inline-flex; align-items:center; gap:8px; }
+  .pager button:hover{ border-color:var(--red); color:var(--red); }
+  .pager .next{ background:var(--red); color:#fff; border-color:var(--red); }
+  .pager .next:hover{ background:var(--red-d); color:#fff; }
+
+  .ic{ stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; display:block; }
+
+  /* hero */
+  .hero{ background:#fff; border:1px solid var(--cardb); border-radius:20px; padding:40px 36px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+  .hero .tag{ display:inline-block; background:#fdeaec; color:var(--red); font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; margin-bottom:16px; }
+  .hero h1{ font-size:34px; }
+  .hero .sub{ font-size:18px; color:var(--grey); margin:2px 0 22px; }
+  .meta{ display:flex; flex-wrap:wrap; gap:8px 28px; font-size:13.5px; color:var(--txt); border-top:1px solid var(--line); padding-top:18px; }
+  .meta b{ color:var(--ink); }
+
+  /* pillars */
+  .pillars{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin:26px 0 8px; }
+  .pillar{ background:#fff; border:1px solid var(--cardb); border-radius:16px; padding:20px; cursor:pointer; text-align:left;
+           transition:transform .12s, border-color .12s, box-shadow .12s; font:inherit; color:inherit; }
+  .pillar:hover{ transform:translateY(-3px); border-color:var(--red); box-shadow:0 8px 22px rgba(0,0,0,.07); }
+  .pillar .pn{ width:42px; height:42px; border-radius:11px; background:#fdeaec; color:var(--red); display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .pillar .pn .ic{ width:22px; height:22px; }
+  .pillar .pt{ font-size:16px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .pillar .pd{ font-size:13.5px; color:var(--grey); line-height:1.5; }
+  .pillar .go{ margin-top:12px; color:var(--red); font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+  .pillar .go .ic{ width:15px; height:15px; }
+
+  .ctaRow{ display:flex; gap:12px; flex-wrap:wrap; margin-top:22px; }
+  .btn{ background:var(--red); color:#fff; border:none; border-radius:11px; padding:14px 22px; font:inherit; font-size:15px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:9px; }
+  .btn:hover{ background:var(--red-d); }
+  .btn.ghost{ background:#fff; color:var(--ink); border:1px solid var(--cardb); }
+  .btn.ghost:hover{ border-color:var(--red); color:var(--red); }
+  .btn .ic{ width:18px; height:18px; }
+
+  /* callouts */
+  .callout{ background:#fff; border:1px solid var(--cardb); border-left:4px solid var(--red); border-radius:0 12px 12px 0; padding:16px 18px; margin:18px 0; }
+  .callout .ct{ font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .stat{ display:flex; gap:14px; flex-wrap:wrap; margin:18px 0; }
+  .stat .s{ flex:1; min-width:150px; background:#fff; border:1px solid var(--cardb); border-radius:14px; padding:16px; }
+  .stat .s b{ display:block; font-size:26px; color:var(--red); font-weight:700; } .stat .s span{ font-size:13px; color:var(--grey); }
+
+  /* tables */
+  .tblwrap{ overflow-x:auto; margin:14px 0; }
+  table.tbl{ width:100%; border-collapse:collapse; font-size:13.5px; background:#fff; border:1px solid var(--cardb); border-radius:12px; overflow:hidden; }
+  table.tbl th{ background:#f3f3f4; color:var(--ink); text-align:left; padding:11px 12px; font-weight:700; border-bottom:2px solid var(--red); }
+  table.tbl td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.tbl tr:last-child td{ border-bottom:none; }
+  table.tbl .tot{ font-weight:700; color:var(--ink); }
+  .cap{ font-size:12px; color:var(--grey); font-style:italic; margin:6px 2px 22px; }
+
+  /* comparison chart */
+  .chart{ background:#fff; border:1px solid var(--cardb); border-radius:14px; padding:20px; margin:16px 0; }
+  .chart .row{ display:flex; align-items:center; gap:12px; margin:9px 0; cursor:pointer; }
+  .chart .nm{ width:78px; font-size:13.5px; font-weight:600; color:var(--ink); flex:0 0 auto; }
+  .chart .track{ flex:1; background:#f0f0f1; border-radius:6px; height:22px; overflow:hidden; }
+  .chart .fill{ height:100%; border-radius:6px; background:#c9ccd1; transition:filter .12s; }
+  .chart .row.ubs .fill{ background:var(--red); }
+  .chart .row:hover .fill{ filter:brightness(.92); }
+  .chart .val{ width:64px; text-align:right; font-size:13px; color:var(--grey); flex:0 0 auto; }
+  .chart .hint{ font-size:12.5px; color:var(--lgrey); margin-top:10px; }
+  table.tbl tr.hl td{ background:#fdeaec; }
+
+  /* competitor cards */
+  .comp{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:14px 0; }
+  .comp .c{ background:#fff; border:1px solid var(--cardb); border-radius:14px; padding:16px; }
+  .comp .c .h{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .comp .c .nm{ font-weight:700; color:var(--ink); } .comp .c .sc{ font-size:12px; font-weight:700; color:#fff; background:var(--red); border-radius:20px; padding:3px 9px; }
+  .comp .c .tp{ font-size:11.5px; color:var(--grey); text-transform:uppercase; letter-spacing:.4px; } .comp .c p{ font-size:13px; margin:6px 0 0; color:var(--txt); }
+
+  /* phone prototype */
+  .protoStage{ background:#eceef0; border-radius:18px; padding:24px; display:flex; flex-direction:column; align-items:center; gap:18px; margin:16px 0; }
+  .flowbar{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .flowbar button{ background:#fff; border:1px solid var(--cardb); border-radius:20px; padding:7px 14px; font:inherit; font-size:13px; cursor:pointer; color:var(--ink); }
+  .flowbar button.active{ background:var(--red); color:#fff; border-color:var(--red); }
+  .device{ width:340px; background:#0b0b0b; border-radius:46px; padding:11px; }
+  .screen{ background:#fff; border-radius:35px; height:720px; display:none; flex-direction:column; overflow:hidden; }
+  .screen.on{ display:flex; }
+  .statusbar{ display:flex; justify-content:space-between; align-items:center; padding:14px 24px 0; font-size:13px; font-weight:600; color:#111; }
+  .statusbar .r{ display:flex; gap:5px; align-items:center; }
+  .appbar{ display:flex; align-items:center; gap:9px; padding:12px 20px 6px; } .appbar .bk{ color:var(--red); cursor:pointer; } .appbar .ttl{ font-size:18px; font-weight:500; color:var(--ink); }
+  .home-top{ padding:10px 20px 0; } .home-top .icons{ display:flex; justify-content:space-between; align-items:center; } .home-top .util{ display:flex; gap:16px; color:var(--red); } .home-top h4{ font-size:25px; font-weight:400; color:var(--ink); margin:8px 0 2px; }
+  .content{ padding:8px 20px 18px; display:flex; flex-direction:column; gap:14px; flex:1; }
+  .pcard{ border:1px solid var(--cardb); border-radius:16px; padding:15px; } .lbl{ font-size:12px; font-weight:600; color:var(--ink); } .ptxt{ font-size:12.5px; color:var(--grey); line-height:1.45; }
+  .divider{ height:1px; background:#ededed; }
+  .iconcircle{ width:46px; height:46px; border-radius:50%; border:1px solid #eee; display:flex; align-items:center; justify-content:center; color:var(--red); flex:0 0 auto; } .iconcircle .ic{ width:24px; height:24px; }
+  .util .ic{ width:22px; height:22px; }
+  .hero2{ display:flex; gap:13px; align-items:flex-start; } .hero2 .tt{ font-size:14.5px; font-weight:500; color:var(--ink); margin:1px 0 5px; }
+  .step{ display:flex; align-items:center; gap:13px; padding:10px 0; } .step .iconcircle{ width:36px; height:36px; } .step .iconcircle .ic{ width:19px; height:19px; } .step .tx{ font-size:14px; color:var(--ink); }
+  .pbtn{ background:var(--red); color:#fff; border:none; border-radius:12px; padding:14px; font:inherit; font-size:15px; font-weight:500; width:100%; cursor:pointer; } .pbtn:hover{ background:var(--red-d); }
+  .foot2{ text-align:center; font-size:11px; color:var(--lgrey); }
+  .pl{ color:var(--red); font-weight:500; font-size:13.5px; display:inline-flex; align-items:center; gap:3px; cursor:pointer; } .pl .ic{ width:14px; height:14px; }
+  .linkrow{ display:flex; align-items:center; gap:9px; } .linkfield{ flex:1; background:#f4f4f5; border-radius:9px; padding:10px 12px; font-size:13.5px; color:var(--ink); }
+  .share{ display:flex; justify-content:space-between; } .share .opt{ display:flex; flex-direction:column; align-items:center; gap:7px; font-size:12px; color:var(--grey); }
+  .bubble{ width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; } .bubble.b1{ background:#25D366; color:#fff; } .bubble.bo{ border:1px solid #e6e6e6; color:var(--red); } .bubble .ic{ width:22px; height:22px; }
+  .big{ font-size:32px; font-weight:400; color:var(--ink); }
+  .reflist .r{ display:flex; align-items:center; gap:12px; padding:12px 0; } .avatar{ width:32px; height:32px; border-radius:50%; background:#cfd3d8; color:#fff; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:0 0 auto; } .reflist .nm{ font-size:14px; font-weight:600; color:var(--ink); } .reflist .st{ font-size:12px; } .reflist .pts{ margin-left:auto; font-size:13.5px; font-weight:600; }
+  .qa{ display:flex; justify-content:space-between; } .qa .a{ display:flex; flex-direction:column; align-items:center; gap:7px; font-size:11px; color:var(--ink); cursor:pointer; } .qa .iconcircle{ width:40px; height:40px; } .qa .iconcircle .ic{ width:21px; height:21px; }
+  .dots{ display:flex; gap:5px; justify-content:center; margin-top:10px; } .dots i{ width:6px; height:6px; border-radius:50%; background:#d8d8d8; } .dots i.on{ background:var(--red); }
+  .tworow{ display:flex; } .tworow .c{ flex:1; } .tworow .v{ font-size:17px; font-weight:600; color:var(--ink); }
+  .listrow{ display:flex; align-items:center; gap:11px; } .mc{ width:28px; height:18px; position:relative; flex:0 0 auto; } .mc i{ width:13px; height:13px; border-radius:50%; position:absolute; top:2.5px; } .mc .o{ left:0; background:#EB001B; } .mc .y{ right:0; background:#F79E1B; mix-blend-mode:multiply; }
+  .seg{ display:flex; height:6px; border-radius:3px; overflow:hidden; margin-top:6px; } .grow{ flex:1; }
+  .spacer{ flex:1; }
+  .protonote{ font-size:12.5px; color:var(--grey); max-width:520px; text-align:center; }
+
+  .srcgrid{ font-size:13.5px; } .srcgrid p{ margin:0 0 10px; padding-left:18px; text-indent:-18px; }
+  .disc{ background:#fff7e6; border:1px solid #f0d9a8; border-radius:12px; padding:14px 16px; font-size:13px; color:#6b5418; margin:22px 0; }
+  @media(max-width:720px){ .pillars,.comp{ grid-template-columns:1fr; } .nav .menu{ display:none; } .hero{ padding:28px 22px; } .device{ width:300px; } .screen{ height:660px; } }
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.6 20a6.4 6.4 0 0 1 12.8 0"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M6 19V12M12 19V6M18 19V10" stroke-width="2"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.3a2.7 2.7 0 1 1 3.4 2.6c-.7.2-1.1.8-1.1 1.6v.3"/><circle cx="11.8" cy="16.7" r=".5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 11.5a7.4 6.4 0 0 1-7.4 6.4H9l-4 3v-4.1A7.4 6.4 0 1 1 20 11.5z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="4" y="9.5" width="16" height="10.5" rx="1.5"/><path d="M3.4 9.5h17.2M12 9.5V20"/><ellipse cx="9.6" cy="6.8" rx="2.2" ry="2.7"/><ellipse cx="14.4" cy="6.8" rx="2.2" ry="2.7"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5" fill="currentColor" stroke="none"/><circle cx="18" cy="6" r="2.5" fill="currentColor" stroke="none"/><circle cx="18" cy="18" r="2.5" fill="currentColor" stroke="none"/><path d="M8.1 10.9 15.9 7M8.1 13.1 15.9 17"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M5 8V6a1 1 0 0 1 1-1h2M16 5h2a1 1 0 0 1 1 1v2M19 16v2a1 1 0 0 1-1 1h-2M8 19H6a1 1 0 0 1-1-1v-2"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-transfer" viewBox="0 0 24 24"><path d="M6 9h12l-3-3M18 15H6l3 3"/></symbol>
+  <symbol id="i-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="7" rx="7" ry="2.6"/><path d="M5 7v5c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V7"/><path d="M5 12v5c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-5"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4.5 7.5 12 12.5 19.5 7.5"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.7" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2M9 11a8 8 0 0 1 9-7 8 8 0 0 1-7 9l-3 3-2-2zM13.5 9.5h.01"/></symbol>
+</svg>
+
+<div class="nav"><div class="bar">
+  <div class="brand"><img src="data:image/png;base64,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" alt="UBS"><small>Refer &amp; Earn</small></div>
+  <div class="menu" id="menu">
+    <button data-v="home">&Uuml;bersicht</button>
+    <button data-v="v1">Einleitung</button>
+    <button data-v="v2">Grundlagen</button>
+    <button data-v="v3">Ist-Zustand</button>
+    <button data-v="v4">Wettbewerb</button>
+    <button data-v="v5">Projekt</button>
+    <button data-v="proto">Prototyp</button>
+    <button data-v="v7">Fazit</button>
+    <button data-v="quellen">Quellen</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+
+  <!-- HOME -->
+  <section class="view active" id="home">
+    <div class="hero">
+      <span class="tag">CAS Digital und AI Transformation in Banking &middot; HSLU</span>
+      <h1>Digitale Weiterempfehlung als Differenzierungs&shy;instrument im Retail Banking</h1>
+      <div class="sub">Eine Analyse am Beispiel der UBS Switzerland AG</div>
+      <div class="meta">
+        <span><b>Autorin:</b> Aida Salihovic</span>
+        <span><b>Betreuung:</b> Prof. Dr. Nils Hafner</span>
+        <span><b>Abgabe:</b> 8. Juni 2026</span>
+        <span><b>Ort:</b> Rotkreuz</span>
+      </div>
+    </div>
+
+    <h2 style="border:none; padding:0; margin:34px 0 6px;">Die Arbeit auf einen Blick</h2>
+    <p class="muted small">W&auml;hlen Sie einen Baustein &ndash; oder navigieren Sie oben durch die Kapitel.</p>
+    <div class="pillars">
+      <button class="pillar" data-v="v2"><div class="pn"><svg class="ic"><use href="#i-book"/></svg></div><div class="pt">Grundlagen</div><div class="pd">Was Referral Marketing ist, warum es wirkt &ndash; und wo UBS KeyClub heute steht.</div><span class="go">&Ouml;ffnen <svg class="ic"><use href="#i-chev"/></svg></span></button>
+      <button class="pillar" data-v="v3"><div class="pn"><svg class="ic"><use href="#i-target"/></svg></div><div class="pt">Ist-Zustand UBS</div><div class="pd">Bewertungsraster mit 7 Parametern: UBS erreicht nur 5 von 35 Punkten.</div><span class="go">&Ouml;ffnen <svg class="ic"><use href="#i-chev"/></svg></span></button>
+      <button class="pillar" data-v="v4"><div class="pn"><svg class="ic"><use href="#i-chart"/></svg></div><div class="pt">Wettbewerbsvergleich</div><div class="pd">UBS im Vergleich mit LUKB, Zak, Yuh, Saxo, Revolut und N26 &ndash; interaktiv.</div><span class="go">&Ouml;ffnen <svg class="ic"><use href="#i-chev"/></svg></span></button>
+      <button class="pillar" data-v="v5"><div class="pn"><svg class="ic"><use href="#i-rocket"/></svg></div><div class="pt">Projekt &laquo;Refer &amp; Earn&raquo;</div><div class="pd">Der L&ouml;sungsvorschlag mit funktionalen Anforderungen und Roadmap.</div><span class="go">&Ouml;ffnen <svg class="ic"><use href="#i-chev"/></svg></span></button>
+    </div>
+
+    <div class="ctaRow">
+      <button class="btn" data-v="proto"><svg class="ic"><use href="#i-gift"/></svg>Interaktiven Prototyp ansehen</button>
+      <button class="btn ghost" data-v="v1">Mit der Einleitung starten</button>
+    </div>
+
+    <div class="disc">Diese interaktive Ansicht ist eine erg&auml;nzende Aufbereitung der schriftlichen Arbeit. Die formale Abgabe bleibt das Word-Dokument mit Quellenangaben. Die Screens sind eigene Konzept-Entw&uuml;rfe in Anlehnung an das UBS-Design (kein offizielles UBS-Material).</div>
+  </section>
+
+  <!-- 1 EINLEITUNG -->
+  <section class="view" id="v1">
+    <div class="crumbs">Kapitel 1</div><div class="kicker">Einleitung</div>
+    <h1>Warum Weiterempfehlung im Banking z&auml;hlt</h1>
+    <p class="lead">Im Schweizer Retail Banking werden die digitalen Angebote der Banken immer &auml;hnlicher. Funktionen wie Mobile Banking, digitale Kontoer&ouml;ffnung und Self-Service-Tools geh&ouml;ren heute zum Branchenstandard. Wettbewerbsentscheidend wird damit nicht l&auml;nger die technische Leistungsf&auml;higkeit allein, sondern die F&auml;higkeit, emotionale Kundenbindung und Loyalit&auml;t aufzubauen und dauerhaft zu pflegen.</p>
+    <p>Vor diesem Hintergrund untersucht die vorliegende Arbeit, wie digitale Weiterempfehlungsmechanismen, sogenannte Referral-Programme, im Banking als strategisches Differenzierungsinstrument eingesetzt werden k&ouml;nnen. Der Fokus liegt auf der UBS Switzerland AG, die &uuml;ber eine etablierte digitale Infrastruktur und ein bestehendes Loyalty-Programm (UBS KeyClub) verf&uuml;gt, dieses jedoch bislang nicht konsequent zur digitalen Neukundengewinnung nutzt. Genau diese L&uuml;cke kenne ich aus meiner eigenen T&auml;tigkeit im Retail Banking.</p>
+    <div class="callout"><div class="ct">Leitfrage</div>Wie kann die UBS digitale Weiterempfehlung nutzen, um sich gegen&uuml;ber ihren Mitbewerbern zu differenzieren?</div>
+    <p>Hafner (2026) beschreibt Kundenloyalit&auml;t als langfristige emotionale und verhaltensbezogene Bindung, die insbesondere durch eine konsistente Customer Journey, echten Nutzen und gezielte Loyalit&auml;tsmassnahmen entsteht. Loyalit&auml;t f&ouml;rdert Vertrauen, Wiederkaufs- und Empfehlungsverhalten und ist ein wichtiger Treiber f&uuml;r langfristigen Umsatz. Die vorliegende Arbeit greift diesen Ansatz auf und analysiert, inwiefern eine digitale Weiterempfehlungsfunktion als konkretes Instrument zur St&auml;rkung von Loyalit&auml;t und Differenzierung beitragen kann.</p>
+    <p>Zun&auml;chst wird der Themenbereich eingeordnet und der heutige Stand bei der UBS analysiert. Darauf folgt ein Vergleich mit ausgew&auml;hlten Peer-Banken, der zeigt, was im Markt bereits m&ouml;glich ist. Aus diesen Erkenntnissen entsteht am Ende ein konkreter Projektvorschlag zur Differenzierung.</p>
+    <div class="pager"><button data-v="home"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>&Uuml;bersicht</button><button class="next" data-v="v2">Grundlagen <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- 2 GRUNDLAGEN -->
+  <section class="view" id="v2">
+    <div class="crumbs">Kapitel 2</div><div class="kicker">Themenbereich</div>
+    <h1>Digitale Weiterempfehlung im Banking</h1>
+    <h2>2.1 Begriffliche Einordnung und Relevanz</h2>
+    <p>Digitale Weiterempfehlungsprogramme, im Englischen als &laquo;Referral Marketing&raquo; bezeichnet, sind ein Instrument, bei dem bestehende Kundinnen und Kunden durch Anreize dazu motiviert werden, neue Personen aus ihrem Netzwerk weiterzuempfehlen. Konkret bedeutet dies: Eine bestehende Kundin oder ein bestehender Kunde empfiehlt die Bank &uuml;ber einen personalisierten digitalen Link oder Code an Freunde und Bekannte. Sobald eine Kontoer&ouml;ffnung durch die empfohlene Person abgeschlossen ist, erhalten beide Seiten eine Pr&auml;mie, in der Regel in Form von Punkten, Cashback oder anderen Verg&uuml;nstigungen.</p>
+    <p>Empfehlungsmarketing verbindet immer drei Seiten: Anbieter, empfehlende und empfohlene Person. Wer eine Empfehlung ausspricht, b&uuml;rgt mit dem eigenen Namen f&uuml;r den Anbieter und gibt so ein St&uuml;ck Vertrauen weiter (Fink, 2014). Was fr&uuml;her von Mund zu Mund lief, erstmals systematisch von Arndt (1967) untersucht, findet heute digital statt (Electronic Word-of-Mouth) und erreicht dadurch mehr Menschen und wird messbar (Hennig-Thurau, Gwinner, Walsh &amp; Gremler, 2004; Lis &amp; Korchmar, 2013). Warum Menschen weiterempfehlen, fasst Berger (2014) zusammen: Mundpropaganda erf&uuml;llt f&uuml;r die empfehlende Person eigene Funktionen: sich positiv darzustellen, Erfahrungen zu teilen und soziale Bindungen zu st&auml;rken.</p>
+    <div class="stat">
+      <div class="s"><b>83&nbsp;%</b><span>vertrauen pers&ouml;nlichen Empfehlungen am meisten (Nielsen, 2015)</span></div>
+      <div class="s"><b>+16&nbsp;%</b><span>h&ouml;herer Kundenwert empfohlener Kundschaft (Schmitt et&nbsp;al., 2011)</span></div>
+      <div class="s"><b>NPS</b><span>Weiterempfehlung als verl&auml;sslichstes Loyalit&auml;tssignal (Reichheld, 2003)</span></div>
+    </div>
+    <p>Eine Empfehlung von jemandem, dem man vertraut, &uuml;berzeugt mehr als jede Werbung. Gem&auml;ss einer globalen Nielsen-Erhebung vertrauen 83&nbsp;% der Befragten solchen Empfehlungen am meisten (Fink, 2014; Nielsen, 2015). Hinzu kommt der Kosteneffekt: Belohnt wird nur, was zu einem Abschluss f&uuml;hrt. Dass sich das auszahlt, belegt eine Langzeitanalyse von rund 10&rsquo;000 Bankkundinnen und -kunden, &uuml;ber ein Empfehlungsprogramm gewonnene Personen hatten im Schnitt einen mindestens 16&nbsp;% h&ouml;heren Kundenwert und blieben l&auml;nger treu als solche aus anderen Kan&auml;len (Schmitt, Skiera &amp; Van den Bulte, 2011). Die aktive Weiterempfehlung gilt zudem als einer der verl&auml;sslichsten Hinweise auf Loyalit&auml;t und k&uuml;nftiges Wachstum (Reichheld, 2003).</p>
+
+    <h2>2.2 Strategische Bedeutung im Kontext der Digitalisierung</h2>
+    <p>Die Digitalisierung hat ver&auml;ndert, was Kundinnen und Kunden erwarten. Services sollen pers&ouml;nlich und sofort verf&uuml;gbar sein, &uuml;ber alle Kan&auml;le hinweg. Gleichzeitig ist online alles vergleichbar, Preise und Funktionen liegen offen. Damit bekommt das Empfehlungsmarketing eine neue Bedeutung: Es ist nicht mehr nur ein Werkzeug zur Kundengewinnung, sondern ein Zeichen echter Loyalit&auml;t. Wer die eigene Bank weiterempfiehlt, ist nicht einfach zufrieden, sondern steht hinter der Bank und legt das eigene Wort f&uuml;r sie ein. Genau dieses Vertrauen l&auml;sst sich in Wert verwandeln (Van den Bulte, Bayer, Skiera &amp; Schmitt, 2018) und macht eine digitale Empfehlung zu einem starken Signal f&uuml;r eine dauerhafte Kundenbindung.</p>
+    <p>Digitale Weiterempfehlungsprogramme er&ouml;ffnen auch die M&ouml;glichkeit, mit Marketing-Kampagnen gezielt neue Kundensegmente anzusprechen. Im Gegensatz zu klassischen Outbound-Massnahmen wie Bannerwerbung oder Direktmailing, erm&ouml;glicht ein digitales Referral-System gezielte, personalisierte Kampagnen innerhalb der eigenen E-Banking- oder Mobile-Banking-Plattform. Dass empfehlungsbasierte Akquisition langfristig st&auml;rker zum Kundenwert beitr&auml;gt als klassische Marketingkan&auml;le, ist dabei mehrfach nachgewiesen worden (Villanueva, Yoo &amp; Hanssens, 2008; Trusov, Bucklin &amp; Pauwels, 2009). So kann die Bank zur richtigen Zeit, etwa nach einer positiven Kundeninteraktion oder bei einem Produktabschluss, automatisiert eine Einladung ausspielen. Diese Kampagnen k&ouml;nnen thematisch differenziert werden. Wer gerade ein Sparkonto er&ouml;ffnet hat, erh&auml;lt eine andere Empfehlungsaufforderung als jemand mit einem Anlageportfolio. Derselbe digitale Kanal gewinnt neue Kundschaft und festigt die Bindung der bestehenden. Zudem schafft dieser nebenbei einen nat&uuml;rlichen Anlass f&uuml;r weitere Produktempfehlungen.</p>
+
+    <h2>2.3 Abgrenzung: UBS KeyClub als Ausgangsbasis</h2>
+    <p>Mit dem UBS KeyClub betreibt die UBS Switzerland AG bereits eine der bekanntesten Loyalty-Plattformen der Schweiz. KeyClub-Punkte lassen sich bei vielen Partnern sammeln und einl&ouml;sen, das bindet die Kundschaft an die Marke und schafft einen sp&uuml;rbaren Nutzen.</p>
+    <p>Empfehlungen werden heute schon mit KeyClub-Punkten belohnt, allerdings auf manuellem Weg: Eine bestehende Kundin empfiehlt jemanden, sobald die UBS davon erf&auml;hrt und die neue Person ein Konto er&ouml;ffnet hat, wird die Empfehlung manuell erfasst und die Punkte werden anschliessend per Post zugestellt. Weil dieser Ablauf nicht digital erfasst und nachverfolgt wird, gehen dabei viele Empfehlungen verloren: Mal wird vergessen, sie zu melden, mal die Punkte auszul&ouml;sen.</p>
+    <div class="callout"><div class="ct">Das ungenutzte Potenzial</div>Genau hier liegt das ungenutzte Potenzial und die Voraussetzungen sind ideal, denn die Kundschaft kennt den Wert der Punkte und ist bereits angemeldet. Eine direkt ins E-Banking und in die UBS Mobile App integrierte Empfehlungsfunktion w&uuml;rde diesen Prozess erstmals digital, attraktiv, automatisch und nachvollziehbar machen.</div>
+    <div class="pager"><button data-v="v1"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Einleitung</button><button class="next" data-v="v3">Ist-Zustand <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- 3 IST-ZUSTAND -->
+  <section class="view" id="v3">
+    <div class="crumbs">Kapitel 3</div><div class="kicker">State of the Art</div>
+    <h1>Digitale Weiterempfehlung bei der UBS</h1>
+    <h2>3.1 Bewertungsraster</h2>
+    <p>Um den aktuellen Stand der digitalen Weiterempfehlungsfunktion bei der UBS systematisch zu beurteilen, habe ich ein Bewertungsraster mit sieben Parametern entwickelt. Diese Parameter decken sowohl technische als auch strategische Dimensionen ab und orientieren sich an bew&auml;hrten Merkmalen erfolgreichen Empfehlungsmarketings (Fink, 2014; Lis &amp; Korchmar, 2013) sowie an den Erkenntnissen der IFZ Retail Banking-Studie 2025 (Dietrich, 2025). Die Bewertung der einzelnen Parameter nehme ich anhand einer eigenen, kriteriengeleiteten Einsch&auml;tzung der &ouml;ffentlich zug&auml;nglichen Angebote der untersuchten Institute vor (Stand: Fr&uuml;hjahr 2026).</p>
+    <div class="tblwrap"><table class="tbl">
+      <tr><th>Parameter</th><th>Kriterium</th><th>Ist-Zustand UBS</th><th>Punkte</th></tr>
+      <tr><td>P1 Digitale Integration</td><td>Direkt in E-Banking und App integriert, ohne Medienbr&uuml;che</td><td>Kein integrierter Einstiegspunkt, l&auml;uft ausserhalb der Plattform</td><td class="tot">1</td></tr>
+      <tr><td>P2 Automatisierung</td><td>Link bzw. Code wird automatisch erzeugt</td><td>Kein automatischer Link, Name wird manuell eingegeben</td><td class="tot">1</td></tr>
+      <tr><td>P3 Anreizmodell</td><td>Anreize klar definiert und transparent</td><td>KeyClub-Punkte m&ouml;glich, aber nicht digital nachverfolgbar</td><td class="tot">2</td></tr>
+      <tr><td>P4 Tracking &amp; Transparenz</td><td>Status in Echtzeit nachverfolgbar</td><td>Kein Tracking, Erfolg bleibt unklar</td><td class="tot">0</td></tr>
+      <tr><td>P5 Personalisierung</td><td>Massgeschneiderte Ansprache zum passenden Zeitpunkt</td><td>Keine personalisierte Ansprache</td><td class="tot">0</td></tr>
+      <tr><td>P6 Kampagnenf&auml;higkeit</td><td>Unterst&uuml;tzt gezielte Produktpromotionen</td><td>Keine Kampagnen &uuml;ber den Referral-Kanal</td><td class="tot">0</td></tr>
+      <tr><td>P7 Kommunikation &amp; UX</td><td>Gut auffindbar, intuitiv, ansprechend</td><td>Nicht in die UX integriert, kaum auffindbar</td><td class="tot">1</td></tr>
+      <tr><td colspan="3" class="tot">Gesamtwertung &ndash; Erf&uuml;llungsgrad rund 14&nbsp;%</td><td class="tot">5 / 35</td></tr>
+    </table></div>
+    <div class="cap">Tabelle 1: Bewertungsraster und Ist-Zustand der digitalen Weiterempfehlung bei der UBS (Skala 0&ndash;5)</div>
+
+    <h2>3.2 Analyse der aktuellen UBS-L&ouml;sung</h2>
+    <p>Heute l&auml;uft die Weiterempfehlung bei der UBS gr&ouml;sstenteils von Hand. Wer auf Empfehlung ein Konto er&ouml;ffnet, gibt den Namen der empfehlenden Person bei der Er&ouml;ffnung selbst an. Einen automatisch erzeugten Link oder eine eigene Funktion im E-Banking oder in der App sucht man vergebens. Die Empfehlung muss also im Gespr&auml;ch oder per Nachricht weitergereicht werden. Belohnt wird sie schon: F&uuml;r eine erfolgreiche Empfehlung gibt es KeyClub-Punkte. Nur bleibt dieser Anreiz von der digitalen Welt abgekoppelt. Die Kundinnen und Kunden erfahren nie, wo ihre Empfehlung aktuell steht, oder ob die Punkte angekommen sind. Entsprechend f&auml;llt die Bewertung aus: 5 von 35 Punkten. Eine funktionsf&auml;hige, digital integrierte Weiterempfehlung gibt es bei der UBS heute nicht und damit liegt sie klar hinter dem aktuellen State of the Art.</p>
+    <div class="pager"><button data-v="v2"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Grundlagen</button><button class="next" data-v="v4">Wettbewerb <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- 4 WETTBEWERB -->
+  <section class="view" id="v4">
+    <div class="crumbs">Kapitel 4</div><div class="kicker">Wettbewerbsvergleich</div>
+    <h1>UBS im Vergleich zur Peer Group</h1>
+    <h2>4.1 Auswahl der Peer Group</h2>
+    <p>F&uuml;r den Vergleich wurden sechs Banken und Finanzdienstleister ausgew&auml;hlt, die f&uuml;r die UBS aufgrund ihrer Marktposition, ihres digitalen Reifegrades oder ihrer Zielgruppe einen relevanten Massstab bilden. Zur Peer Group geh&ouml;ren traditionelle Schweizer Banken wie auch digitale und internationale Neobanken, die Referral-Programme bereits konsequent nutzen.</p>
+    <div class="tblwrap"><table class="tbl">
+      <tr><th>Institution</th><th>Typ</th><th>Begr&uuml;ndung der Auswahl</th></tr>
+      <tr><td>LUKB</td><td>Kantonalbank CH</td><td>Direkte regionale Konkurrenz; vergleichbares Kundensegment</td></tr>
+      <tr><td>Zak (Bank Cler)</td><td>Digitalbank CH</td><td>F&uuml;hrend im Schweizer App-Banking; starke Referral-Integration</td></tr>
+      <tr><td>Yuh</td><td>Neobank CH</td><td>Vollst&auml;ndig digital; App-first Referral-Programm</td></tr>
+      <tr><td>Saxo Bank</td><td>Broker/Bank CH</td><td>Established Referral via pers&ouml;nlichem Link auf Plattform</td></tr>
+      <tr><td>Revolut</td><td>Neobank EU/CH</td><td>Internationaler Referral-Champion; sehr ausgereiftes System</td></tr>
+      <tr><td>N26</td><td>Neobank DE/CH</td><td>App-integrierte Einladungslinks, erprobtes Wachstumsmodell</td></tr>
+    </table></div>
+    <div class="cap">Tabelle 2: Ausgew&auml;hlte Peer Group f&uuml;r den Wettbewerbsvergleich</div>
+
+    <h2>4.2 Analyse der Wettbewerber</h2>
+    <div class="comp">
+      <div class="c"><div class="h"><span class="nm">LUKB</span><span class="sc">15</span></div><div class="tp">Kantonalbank CH</div><p>Empfehlungscode im 3a-Produkt &laquo;fluks&raquo;, im E-Banking eingebbar. Produktspezifisch, nicht voll in die Haupt-App integriert; erster relevanter Schritt (LUKB, 2025).</p></div>
+      <div class="c"><div class="h"><span class="nm">Zak / Bank Cler</span><span class="sc">25</span></div><div class="tp">Digitalbank CH</div><p>Referral direkt in der App &uuml;ber personalisierten Code; bei Er&ouml;ffnung erhalten beide eine Pr&auml;mie. Durchg&auml;ngig digital und einfach (Cler, 2026).</p></div>
+      <div class="c"><div class="h"><span class="nm">Yuh</span><span class="sc">33</span></div><div class="tp">Neobank CH</div><p>Einer der intuitivsten Mechanismen im Markt: Link jederzeit teilbar, Pr&auml;mien direkt ins Depot, aktiv f&uuml;r Kampagnen genutzt (Yuh, 2026).</p></div>
+      <div class="c"><div class="h"><span class="nm">Saxo Bank</span><span class="sc">24</span></div><div class="tp">Broker/Bank CH</div><p>Referral &uuml;ber pers&ouml;nlichen Link, auf Anlegerinnen und Anleger ausgerichtet; Tracking vorhanden, weniger prominent (Saxo, 2025).</p></div>
+      <div class="c"><div class="h"><span class="nm">Revolut</span><span class="sc">35</span></div><div class="tp">Neobank EU/CH</div><p>Internationaler Benchmark: Statistik und Status in Echtzeit, vollst&auml;ndig automatisiert, personalisiert und kampagnenf&auml;hig (Revolut, 2026).</p></div>
+      <div class="c"><div class="h"><span class="nm">N26</span><span class="sc">31</span></div><div class="tp">Neobank DE/CH</div><p>Personalisierte Einladungslinks, in der Schweiz verf&uuml;gbar, gezielt f&uuml;r Wachstumskampagnen und Produktfeatures genutzt (N26, 2026).</p></div>
+    </div>
+
+    <h2>4.3 Bewertung im Vergleich</h2>
+    <p>Nachfolgend werden alle sieben Bewertungsparameter f&uuml;r die UBS und die sechs Wettbewerber zusammengef&uuml;hrt. Die Bewertung erfolgt auf einer Skala von 0 (nicht vorhanden) bis 5 (ausgezeichnet umgesetzt).</p>
+    <p class="small muted">Tippen Sie auf einen Balken, um die Detailbewertung der sieben Parameter in der Tabelle hervorzuheben.</p>
+    <div class="chart" id="chart">
+      <div class="row ubs" data-b="UBS"><span class="nm">UBS</span><div class="track"><div class="fill" style="width:14%"></div></div><span class="val">5 / 35</span></div>
+      <div class="row" data-b="LUKB"><span class="nm">LUKB</span><div class="track"><div class="fill" style="width:43%"></div></div><span class="val">15</span></div>
+      <div class="row" data-b="Zak"><span class="nm">Zak</span><div class="track"><div class="fill" style="width:71%"></div></div><span class="val">25</span></div>
+      <div class="row" data-b="Saxo"><span class="nm">Saxo</span><div class="track"><div class="fill" style="width:69%"></div></div><span class="val">24</span></div>
+      <div class="row" data-b="N26"><span class="nm">N26</span><div class="track"><div class="fill" style="width:89%"></div></div><span class="val">31</span></div>
+      <div class="row" data-b="Yuh"><span class="nm">Yuh</span><div class="track"><div class="fill" style="width:94%"></div></div><span class="val">33</span></div>
+      <div class="row" data-b="Revolut"><span class="nm">Revolut</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">35</span></div>
+      <div class="hint">Gesamtpunkte von max. 35 &middot; UBS rot hervorgehoben</div>
+    </div>
+    <div class="cap">Abbildung 2: Gesamtpunktzahl im Wettbewerbsvergleich (max. 35 Punkte, eigene Darstellung)</div>
+    <div class="tblwrap"><table class="tbl" id="cmptbl">
+      <tr><th>Parameter</th><th data-b="UBS">UBS</th><th data-b="LUKB">LUKB</th><th data-b="Zak">Zak</th><th data-b="Yuh">Yuh</th><th data-b="Saxo">Saxo</th><th data-b="Revolut">Revolut</th><th data-b="N26">N26</th></tr>
+      <tr><td>P1 Digitale Integration</td><td>1</td><td>2</td><td>4</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+      <tr><td>P2 Automatisierung</td><td>1</td><td>3</td><td>4</td><td>5</td><td>4</td><td>5</td><td>5</td></tr>
+      <tr><td>P3 Anreizmodell</td><td>2</td><td>3</td><td>4</td><td>5</td><td>4</td><td>5</td><td>4</td></tr>
+      <tr><td>P4 Tracking</td><td>0</td><td>2</td><td>3</td><td>4</td><td>4</td><td>5</td><td>4</td></tr>
+      <tr><td>P5 Personalisierung</td><td>0</td><td>1</td><td>3</td><td>4</td><td>3</td><td>5</td><td>4</td></tr>
+      <tr><td>P6 Kampagnenf&auml;higkeit</td><td>0</td><td>2</td><td>3</td><td>5</td><td>3</td><td>5</td><td>4</td></tr>
+      <tr><td>P7 Kommunikation &amp; UX</td><td>1</td><td>2</td><td>4</td><td>5</td><td>3</td><td>5</td><td>5</td></tr>
+      <tr><td class="tot">Gesamt (max. 35)</td><td class="tot">5</td><td class="tot">15</td><td class="tot">25</td><td class="tot">33</td><td class="tot">24</td><td class="tot">35</td><td class="tot">31</td></tr>
+    </table></div>
+    <div class="cap">Tabelle 3: Wettbewerbsvergleich &ndash; Bewertung nach Parametern (Skala 0&ndash;5)</div>
+    <p>Das Ergebnis ist deutlich. Mit 5 von 35 Punkten (14&nbsp;%) liegt die UBS klar am Ende des Vergleichs. Selbst die LUKB, eine eher konservative Kantonalbank, kommt mit 15 Punkten (43&nbsp;%) auf das Dreifache. Wie weit der Markt inzwischen ist, zeigen Revolut (100&nbsp;%) und N26 (89&nbsp;%). Am aufschlussreichsten ist aber Yuh: Mit 94&nbsp;% beweist die Schweizer Plattform, dass sich ein entwickeltes Empfehlungsprogramm auch im Schweizer Umfeld umsetzen l&auml;sst und gilt damit f&uuml;r die UBS als direkteste Benchmark.</p>
+    <p>Besonders aufschlussreich wird dieser R&uuml;ckstand im Licht der IFZ-Studie 2025: Dort gilt die UBS als digitalste Retailbank der Schweiz (Dietrich, 2025). Gerade weil die Bank ihre Kan&auml;le sonst konsequent digitalisiert hat, f&auml;llt die manuelle, kaum sichtbare Weiterempfehlung umso st&auml;rker aus dem Rahmen. Es ist also keine Frage des technischen K&ouml;nnens, sondern eine bewusst oder unbewusst offen gelassene L&uuml;cke.</p>
+    <p>Was die UBS von den f&uuml;hrenden Anbietern lernen kann, l&auml;sst sich konkret benennen. Von Yuh und Revolut stammt der jederzeit teilbare Link direkt in der App, von Revolut zus&auml;tzlich das Status-Tracking in Echtzeit, das aus einer einmaligen Empfehlung ein nachvollziehbares Erlebnis macht. Entscheidend ist dabei weniger die einzelne Funktion als das Zusammenspiel. Erst wenn Anreiz, Teilen und R&uuml;ckmeldung in einem durchg&auml;ngigen Ablauf zusammenkommen, entsteht der Effekt, der empfohlene Kundschaft nachweislich wertvoller und treuer macht (Schmitt et&nbsp;al., 2011).</p>
+    <div class="pager"><button data-v="v3"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Ist-Zustand</button><button class="next" data-v="v5">Projektvorschlag <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- 5 PROJEKT -->
+  <section class="view" id="v5">
+    <div class="crumbs">Kapitel 5</div><div class="kicker">Massnahmen &amp; Projektvorschlag</div>
+    <h1>&laquo;UBS Refer &amp; Earn&raquo;</h1>
+    <h2>5.1 &Uuml;berblick und Zielsetzung</h2>
+    <p>Auf Basis der durchgef&uuml;hrten Analyse wird nachfolgend ein konkreter Projektvorschlag entwickelt, der die UBS in die Lage versetzt, digitale Weiterempfehlung als strategisches Instrument f&uuml;r Neukundengewinnung, Loyalit&auml;tssteigerung und Produktdifferenzierung einzusetzen. Das Projekt tr&auml;gt den Titel &laquo;UBS Refer &amp; Earn&raquo; und soll die bestehende UBS KeyClub-Infrastruktur mit einer neuen, digital integrierten Empfehlungsfunktion verbinden.</p>
+    <p>Ziele des Projekts sind:</p>
+    <ul>
+      <li>Neukundengewinnung &uuml;ber einen vertrauensbasierten, kosteneffizienten Kanal</li>
+      <li>Steigerung der KeyClub-Aktivierungsrate bei Bestandskundinnen und -kunden</li>
+      <li>Schaffung einer skalierbaren Plattform f&uuml;r gezielte Marketing-Kampagnen und Cross-Selling-Initiativen</li>
+      <li>Differenzierung der UBS gegen&uuml;ber Neobanken durch eine erstklassige UX</li>
+    </ul>
+
+    <h2>5.2 Funktionale Anforderungen</h2>
+    <p>Die neue Funktion soll folgende Kernelemente beinhalten. Abbildung 1 zeigt, wie sich diese Elemente in der UBS Mobile App darstellen lassen.</p>
+    <button class="btn" data-v="proto" style="margin:4px 0 14px;"><svg class="ic"><use href="#i-gift"/></svg>Zum interaktiven Prototyp</button>
+    <ul>
+      <li><b>Personalisierter Empfehlungslink:</b> Jeder UBS-Kunde erh&auml;lt in der Mobile App und im E-Banking einen eindeutigen, automatisch generierten Empfehlungslink, der geteilt werden kann.</li>
+      <li><b>KeyClub-Anreiz:</b> Bei erfolgreicher Kontoer&ouml;ffnung durch eine empfohlene Person erhalten sowohl die empfehlende als auch die neu gewonnene Person eine definierte Anzahl KeyClub-Punkte.</li>
+      <li><b>Echtzeit-Tracking:</b> Ein Tracking-Dashboard zeigt jederzeit den Status der Empfehlungen: ausstehend, akzeptiert, Konto er&ouml;ffnet, Punkte gutgeschrieben.</li>
+      <li><b>Kampagnenmodul:</b> Ein Backend-Tool erlaubt dem Marketing-Team, zeitlich begrenzte Kampagnen mit erh&ouml;hten Punktepr&auml;mien oder Produktaktionen zu konfigurieren.</li>
+      <li><b>Personalisiertes Ausspielen:</b> Auf Basis von Kundenverhalten werden Empfehlungsaufforderungen individuell zum richtigen Zeitpunkt ausgespielt.</li>
+      <li><b>Interaktive Produktpromotion:</b> Neben der Kontoempfehlung lassen sich auch andere UBS-Produkte (Anlagen, Vorsorge, Kreditkarten) &uuml;ber den Referral-Kanal bewerben.</li>
+    </ul>
+
+    <h2>5.3 Kampagnenpotenzial: Gezielte Neukundengewinnung und Cross-Selling</h2>
+    <p>Ein besonderer Vorteil liegt in der kampagnenf&auml;higen Ausgestaltung des Referral-Programms. W&auml;hrend klassische Banken Referral-Programme vor allem als passive Hintergrundmechanismen betreiben, erm&ouml;glicht ein aktives Kampagnenmodul eine gezielte, pers&ouml;nliche Ansprache der bestehenden und neuen Kundschaft.</p>
+    <p>Konkrete Kampagnenbeispiele umfassen eine Fr&uuml;hlingsaktion mit Bonus-Punkten (&laquo;Empfehle jetzt bis Ende April und erhalte doppelte KeyClub-Punkte&raquo;), produktspezifische Empfehlungskampagnen (&laquo;Empfehle UBS Vorsorge 3a und erhalte 500 KeyClub-Punkte nach erfolgreicher Er&ouml;ffnung&raquo;), Lebensereignis-basierte Trigger (&laquo;Herzlichen Gl&uuml;ckwunsch zu Ihrem neuen Konto &ndash; empfehlen Sie UBS weiter und profitieren Sie gemeinsam&raquo;) sowie Reaktivierungskampagnen f&uuml;r inaktive Kundinnen und Kunden.</p>
+    <p>So wird aus dem Referral-Programm mehr als ein reiner Akquisitionskanal: ein digitales Marketinginstrument, das neue Kundschaft gewinnt, die Bindung der bestehenden st&auml;rkt und nebenbei einen Anlass f&uuml;r weitere Produktempfehlungen schafft. Gegen&uuml;ber klassischen Outbound-Massnahmen wirkt das gleich doppelt. Empfehlungen von Vertrauenspersonen funktionieren besser als Werbung und belohnt wird nur, was tats&auml;chlich zu einer Er&ouml;ffnung f&uuml;hrt, die Kosten pro Neugewinnung bleiben also tief. Weil jede Empfehlung digital erfasst wird, lassen sich Kampagnen ausserdem laufend testen und nachsch&auml;rfen.</p>
+
+    <h2>5.4 Rechtliche und regulatorische Rahmenbedingungen</h2>
+    <p>Ein Empfehlungsprogramm im Banking bewegt sich in einem engeren rechtlichen Rahmen als in anderen Branchen. Der Datenschutz ist dabei zentral. Sobald eine Kundin einen Link teilt und eine zweite Person dar&uuml;ber ein Konto er&ouml;ffnet, werden Personendaten beider Seiten verarbeitet. Das Datenschutzgesetz verlangt daf&uuml;r eine transparente Information und eine klare Einwilligung (revDSG, 2023). Die Teilnahmebedingungen m&uuml;ssen verst&auml;ndlich offenlegen, welche Daten zu welchem Zweck genutzt werden. Zudem spielt auch das Bankkundengeheimnis eine Rolle. Der Empfehlungslink darf keine Kundeninformationen preisgeben. Geteilt wird ein anonymer Code, nicht die Information, dass jemand bei der UBS Kundin oder Kunde ist. Die Empfehlung geht immer von der Kundschaft selbst aus, nicht von der Bank.</p>
+    <p>Hinzu kommt die Sorgfaltspflicht bei der Kontoer&ouml;ffnung. Eine empfohlene Person durchl&auml;uft denselben Identifikations- und Onboarding-Prozess wie jede andere. Das Empfehlungsprogramm verk&uuml;rzt die Pr&uuml;fung nicht, sondern setzt erst nach erfolgreichem Abschluss an. Schliesslich braucht es einen Schutz vor Missbrauch. Selbstempfehlungen, Mehrfachkonten oder das gezielte Ausnutzen von Punkteaktionen m&uuml;ssen technisch erkannt und ausgeschlossen werden, etwa &uuml;ber eine Begrenzung pro Person und eine automatische Plausibilit&auml;tspr&uuml;fung. Werden diese Rahmenbedingungen von Beginn an gepr&uuml;ft, l&auml;sst sich das Programm rechtssicher und vertrauensw&uuml;rdig betreiben. Im Banking ist das keine Nebensache, sondern Voraussetzung.</p>
+
+    <h2>5.5 Technische Umsetzung und Projektphasen</h2>
+    <div class="tblwrap"><table class="tbl">
+      <tr><th>Phase</th><th>Zeitraum</th><th>Inhalte</th><th>Verantwortung</th></tr>
+      <tr><td>1 &middot; Konzept &amp; Design</td><td>Monat 1&ndash;2</td><td>UX/UI-Design der Funktion; Anreizmodell; Spezifikation Tracking-Dashboard</td><td>Product Owner, UX, KeyClub-Team</td></tr>
+      <tr><td>2 &middot; Entwicklung &amp; Testing</td><td>Monat 3&ndash;5</td><td>Backend (Link, Tracking, Kampagnen); Integration; Pilot mit 500 Testpersonen</td><td>IT, Compliance, Marketing</td></tr>
+      <tr><td>3 &middot; Rollout &amp; Optimierung</td><td>Monat 6&ndash;8</td><td>Voller Launch; Launch-Kampagne; KPI-Monitoring; iterative Optimierung</td><td>Marketing, CRM, Analytics, Retail</td></tr>
+    </table></div>
+    <div class="cap">Tabelle 4: Projektphasen &laquo;UBS Refer &amp; Earn&raquo;</div>
+
+    <h2>5.6 Erwarteter Nutzen und KPIs</h2>
+    <ul>
+      <li>Anzahl aktivierter Empfehlungslinks (pro Monat)</li>
+      <li>Konversionsrate: Anteil der Empfehlungen, die zu einer Kontoer&ouml;ffnung f&uuml;hren</li>
+      <li>Customer Acquisition Cost (CAC) &uuml;ber Referral-Kanal vs. andere Kan&auml;le</li>
+      <li>KeyClub-Aktivierungsrate der teilnehmenden Kundinnen und Kunden</li>
+      <li>Net Promoter Score (NPS) der empfehlenden Kundschaft im Vergleich zum Durchschnitt</li>
+      <li>Cross-Selling-Quote: Anteil der Neukunden, die nach Empfehlung weitere Produkte abschliessen</li>
+    </ul>
+    <p>Als langfristiger Wettbewerbsvorteil positioniert das Projekt die UBS als erste Grossbank der Schweiz mit einer vollst&auml;ndig integrierten, kampagnenf&auml;higen Weiterempfehlungsplattform und schliesst damit eine strategische L&uuml;cke gegen&uuml;ber Neobanken wie Yuh und Revolut, ohne deren Kostenstrukturen kopieren zu m&uuml;ssen.</p>
+    <div class="pager"><button data-v="v4"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Wettbewerb</button><button class="next" data-v="proto">Prototyp <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- PROTOTYP -->
+  <section class="view" id="proto">
+    <div class="crumbs">Konzept-Prototyp</div><div class="kicker">Interaktiv</div>
+    <h1>So k&ouml;nnte &laquo;Refer &amp; Earn&raquo; in der App aussehen</h1>
+    <p class="lead">Klicken Sie sich durch den Ablauf: von der Startseite &uuml;ber den Einstieg und das Teilen bis zum Echtzeit-Tracking. Die roten Buttons f&uuml;hren weiter.</p>
+    <div class="protoStage">
+      <div class="flowbar" id="flow">
+        <button data-s="start">Startseite</button>
+        <button data-s="einstieg" class="active">1 &middot; Einstieg</button>
+        <button data-s="teilen">2 &middot; Teilen</button>
+        <button data-s="tracking">3 &middot; Tracking</button>
+      </div>
+      <div class="device"><div id="phone">
+
+        <!-- screen: einstieg -->
+        <div class="screen on" data-s="einstieg">
+          <div class="statusbar"><span>9:41</span><span class="r"><svg width="17" height="11"><path d="M2 10V7M6 10V5M10 10V3M14 10V1" stroke="#111" stroke-width="2" stroke-linecap="round"/></svg><svg width="22" height="11"><rect x="1" y="1" width="16" height="8.5" rx="2.2" fill="none" stroke="#111"/><rect x="2.6" y="2.6" width="12" height="5.3" rx="1.2" fill="#111"/><rect x="18" y="3.4" width="2" height="3.6" rx="1" fill="#111"/></svg></span></div>
+          <div class="appbar"><span class="bk" onclick="showScreen('start')"><svg class="ic" width="22" height="22"><use href="#i-back"/></svg></span><span class="ttl">Freunde empfehlen</span></div>
+          <div class="content">
+            <div class="pcard hero2"><div class="iconcircle"><svg class="ic"><use href="#i-gift"/></svg></div>
+              <div><div class="tt">Empfehlen lohnt sich</div><div class="ptxt">Empfehlen Sie UBS weiter. Sie und Ihre eingeladene Person erhalten je 50&nbsp;KeyClub-Punkte.</div></div></div>
+            <div class="lbl">So funktioniert&rsquo;s</div>
+            <div>
+              <div class="step"><div class="iconcircle"><svg class="ic"><use href="#i-share"/></svg></div><span class="tx">Pers&ouml;nlichen Link teilen</span></div><div class="divider"></div>
+              <div class="step"><div class="iconcircle"><svg class="ic"><use href="#i-person"/></svg></div><span class="tx">Eingeladene Person er&ouml;ffnet Konto</span></div><div class="divider"></div>
+              <div class="step"><div class="iconcircle"><svg class="ic"><use href="#i-coins"/></svg></div><span class="tx">Beide erhalten 50 KeyClub-Punkte</span></div>
+            </div>
+            <div class="spacer"></div><button class="pbtn" onclick="showScreen('teilen')">Jetzt empfehlen</button><div class="foot2">Es gelten die Teilnahmebedingungen.</div>
+          </div>
+        </div>
+
+        <!-- screen: teilen -->
+        <div class="screen" data-s="teilen">
+          <div class="statusbar"><span>9:41</span><span class="r"><svg width="17" height="11"><path d="M2 10V7M6 10V5M10 10V3M14 10V1" stroke="#111" stroke-width="2" stroke-linecap="round"/></svg><svg width="22" height="11"><rect x="1" y="1" width="16" height="8.5" rx="2.2" fill="none" stroke="#111"/><rect x="2.6" y="2.6" width="12" height="5.3" rx="1.2" fill="#111"/><rect x="18" y="3.4" width="2" height="3.6" rx="1" fill="#111"/></svg></span></div>
+          <div class="appbar"><span class="bk" onclick="showScreen('einstieg')"><svg class="ic" width="22" height="22"><use href="#i-back"/></svg></span><span class="ttl">Empfehlung teilen</span></div>
+          <div class="content">
+            <div class="lbl">Ihr pers&ouml;nlicher Link</div>
+            <div class="linkrow"><div class="linkfield">ubs.ch/r/AIDA-7K2P</div><span class="pl"><svg class="ic"><use href="#i-copy"/></svg>Kopieren</span></div>
+            <div class="divider"></div><div class="lbl">Direkt teilen</div>
+            <div class="share">
+              <div class="opt"><div class="bubble b1"><svg class="ic" style="color:#fff"><use href="#i-chat"/></svg></div>WhatsApp</div>
+              <div class="opt"><div class="bubble bo"><svg class="ic"><use href="#i-mail"/></svg></div>E-Mail</div>
+              <div class="opt"><div class="bubble bo"><svg class="ic"><use href="#i-chat"/></svg></div>SMS</div>
+              <div class="opt"><div class="bubble bo"><svg class="ic"><use href="#i-dots"/></svg></div>Mehr</div>
+            </div>
+            <div class="divider"></div>
+            <div class="pcard hero2" style="align-items:center"><div class="iconcircle"><svg class="ic"><use href="#i-gift"/></svg></div>
+              <div><div class="tt" style="margin:0 0 2px">Je 50 KeyClub-Punkte</div><div class="ptxt">f&uuml;r Sie und die neue Kundin</div></div></div>
+            <div class="lbl">Status</div><div class="ptxt">Punkte werden nach erfolgreicher Konto&shy;er&ouml;ffnung automatisch gutgeschrieben.</div>
+            <div class="spacer"></div><button class="pbtn" onclick="showScreen('tracking')">Link jetzt teilen</button>
+          </div>
+        </div>
+
+        <!-- screen: tracking -->
+        <div class="screen" data-s="tracking">
+          <div class="statusbar"><span>9:41</span><span class="r"><svg width="17" height="11"><path d="M2 10V7M6 10V5M10 10V3M14 10V1" stroke="#111" stroke-width="2" stroke-linecap="round"/></svg><svg width="22" height="11"><rect x="1" y="1" width="16" height="8.5" rx="2.2" fill="none" stroke="#111"/><rect x="2.6" y="2.6" width="12" height="5.3" rx="1.2" fill="#111"/><rect x="18" y="3.4" width="2" height="3.6" rx="1" fill="#111"/></svg></span></div>
+          <div class="appbar"><span class="bk" onclick="showScreen('teilen')"><svg class="ic" width="22" height="22"><use href="#i-back"/></svg></span><span class="ttl">Meine Empfehlungen</span></div>
+          <div class="content">
+            <div class="pcard" style="display:flex;align-items:center;justify-content:space-between"><div><div class="ptxt">Verdiente KeyClub-Punkte</div><div class="big">150</div></div><div class="iconcircle"><svg class="ic"><use href="#i-coins"/></svg></div></div>
+            <div class="lbl">Ihre Empfehlungen</div>
+            <div class="reflist">
+              <div class="r"><div class="avatar">LM</div><div><div class="nm">Lena M.</div><div class="st" style="color:var(--green)">Konto er&ouml;ffnet</div></div><span class="pts" style="color:var(--green)">+50</span><span style="color:var(--red);margin-left:9px"><svg class="ic" width="17" height="17"><use href="#i-chev"/></svg></span></div><div class="divider"></div>
+              <div class="r"><div class="avatar">MB</div><div><div class="nm">Marco B.</div><div class="st" style="color:var(--amber)">Registriert</div></div><span class="pts" style="color:var(--grey)">ausstehend</span><span style="color:var(--red);margin-left:9px"><svg class="ic" width="17" height="17"><use href="#i-chev"/></svg></span></div><div class="divider"></div>
+              <div class="r"><div class="avatar">SK</div><div><div class="nm">Sara K.</div><div class="st" style="color:var(--grey)">Eingeladen</div></div><span class="pts" style="color:var(--grey)">offen</span><span style="color:var(--red);margin-left:9px"><svg class="ic" width="17" height="17"><use href="#i-chev"/></svg></span></div>
+            </div>
+            <div class="spacer"></div><button class="pbtn" onclick="showScreen('einstieg')">Person empfehlen</button>
+          </div>
+        </div>
+
+        <!-- screen: start -->
+        <div class="screen" data-s="start">
+          <div class="statusbar"><span>9:41</span><span class="r"><svg width="17" height="11"><path d="M2 10V7M6 10V5M10 10V3M14 10V1" stroke="#111" stroke-width="2" stroke-linecap="round"/></svg><svg width="22" height="11"><rect x="1" y="1" width="16" height="8.5" rx="2.2" fill="none" stroke="#111"/><rect x="2.6" y="2.6" width="12" height="5.3" rx="1.2" fill="#111"/><rect x="18" y="3.4" width="2" height="3.6" rx="1" fill="#111"/></svg></span></div>
+          <div class="home-top"><div class="icons"><span style="color:var(--red)"><svg class="ic" width="24" height="24"><use href="#i-person"/></svg></span><span class="util"><svg class="ic"><use href="#i-chart"/></svg><svg class="ic"><use href="#i-help"/></svg><svg class="ic"><use href="#i-chat"/></svg></span></div><h4>Startseite</h4></div>
+          <div class="content" style="gap:13px">
+            <div class="pcard" style="padding:13px 8px"><div class="qa">
+              <div class="a"><div class="iconcircle"><svg class="ic"><use href="#i-scan"/></svg></div>Scan &amp; Upload</div>
+              <div class="a"><div class="iconcircle"><svg class="ic"><use href="#i-transfer"/></svg></div>Konto&uuml;bertrag</div>
+              <div class="a" onclick="showScreen('einstieg')"><div class="iconcircle"><svg class="ic"><use href="#i-gift"/></svg></div>Empfehlen</div>
+            </div><div class="dots"><i class="on"></i><i></i></div></div>
+            <div class="listrow"><span style="color:var(--red)"><svg class="ic" width="21" height="21"><use href="#i-chart"/></svg></span><div><div style="font-size:14px;color:var(--ink)">Total Nettoverm&ouml;gen</div><div class="ptxt">2 Bankbeziehungen</div></div><span style="margin-left:auto;color:var(--red)"><svg class="ic" width="17" height="17"><use href="#i-chev"/></svg></span></div>
+            <div class="divider"></div>
+            <div class="tworow"><div class="c"><div class="ptxt">Konten</div><div class="v">CHF 41&rsquo;312</div><div class="ptxt">Per heute</div></div><div class="c"><div class="ptxt">Anlagen</div><div class="v">CHF 16&rsquo;100</div><div class="ptxt">Per gestern</div></div></div>
+            <div class="pcard hero2" style="align-items:center; cursor:pointer" onclick="showScreen('einstieg')"><div class="iconcircle"><svg class="ic"><use href="#i-gift"/></svg></div><div><div class="tt" style="margin:0 0 2px">Empfehlen &amp; profitieren</div><div class="ptxt">50 KeyClub-Punkte sichern</div><div class="pl" style="margin-top:5px">Mehr erfahren<svg class="ic"><use href="#i-chev"/></svg></div></div></div>
+            <div><div class="ptxt" style="margin-bottom:7px">Karten</div><div class="listrow"><span class="mc"><i class="o"></i><i class="y"></i></span><div><div style="font-size:14px;font-weight:600;color:var(--ink)">Gold &middot;&middot;&middot;&middot; 1312</div><div class="ptxt">Julia Clerici</div></div><span style="margin-left:auto;color:var(--red)"><svg class="ic" width="17" height="17"><use href="#i-chev"/></svg></span></div>
+              <div class="seg"><i style="width:55%;background:var(--red)"></i><i style="width:20%;background:#4a4a4a"></i><i class="grow" style="background:#dcdcdc"></i></div>
+              <div style="display:flex;justify-content:space-between;margin-top:5px" class="ptxt"><span>Saldo CHF -6&rsquo;500</span><span>Verf&uuml;gbar CHF 3&rsquo;500</span></div></div>
+          </div>
+        </div>
+
+      </div></div>
+      <div class="protonote">Tipp f&uuml;r die Word-Arbeit: einzelne Screens per Screenshot ausschneiden und als Abbildung einf&uuml;gen (eigene Darstellung, in Anlehnung an das UBS-Design).</div>
+    </div>
+    <div class="pager"><button data-v="v5"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Projekt</button><button class="next" data-v="v7">Fazit <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+  <!-- 7 FAZIT -->
+  <section class="view" id="v7">
+    <div class="crumbs">Kapitel 6</div><div class="kicker">Schlussfolgerung</div>
+    <h1>Loyalit&auml;t digital nutzbar machen</h1>
+    <p class="lead">Die Analyse zeigt: Digitale Weiterempfehlung ist im Banking mehr als ein einzelnes Marketinginstrument. Sie verbindet bestehende Kundenloyalit&auml;t mit messbarer Neukundengewinnung und &ouml;ffnet zugleich einen Kanal f&uuml;r gezielte Produktempfehlungen. Im Vergleich mit den untersuchten Wettbewerbern hat die UBS Switzerland AG hier deutlichen Nachholbedarf.</p>
+    <p>Mein Projektvorschlag &laquo;UBS Refer &amp; Earn&raquo; zeigt, dass die bestehende UBS KeyClub-Infrastruktur daf&uuml;r eine gute Ausgangsbasis ist. Sie l&auml;sst sich mit &uuml;berschaubarem Aufwand zu einer digitalen, kampagnenf&auml;higen Empfehlungsplattform ausbauen. Wichtig ist dabei nicht nur die Technik, sondern die Haltung dahinter. Loyalit&auml;t entsteht, wie Hafner (2026) festh&auml;lt, aus echtem Nutzen, und eine Kundin, die ihre Bank aktiv weiterempfiehlt, ist das st&auml;rkste Zeichen daf&uuml;r.</p>
+    <div class="callout"><div class="ct">Die Chance f&uuml;r die UBS</div>Eine digital integrierte Empfehlungsfunktion w&uuml;rde der UBS erlauben, die Treue ihres grossen Kundenstamms erstmals systematisch zu nutzen. Damit beantwortet sich auch die zu Beginn gestellte Frage: Differenzierung entsteht hier nicht durch noch mehr Technik, sondern durch den konsequenten Einsatz dessen, was die UBS bereits besitzt.</div>
+
+    <p class="small muted">Das vollst&auml;ndige Literaturverzeichnis findest du unter <a href="#" onclick="showView('quellen');return false;">Quellen</a>.</p>
+    <div class="pager"><button data-v="proto"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Prototyp</button><button class="next" data-v="quellen">Quellenverzeichnis <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+  <!-- QUELLEN -->
+  <section class="view" id="quellen">
+    <div class="crumbs">Verzeichnis</div><div class="kicker">Literaturverzeichnis</div>
+    <h1>Quellen</h1>
+    <h2>Wissenschaftliche Quellen</h2>
+    <div class="srcgrid">
+      <p>Arndt, J. (1967). Word of Mouth Advertising and Informal Communication. In D. F. Cox (Hrsg.), <i>Risk Taking and Information Handling in Consumer Behavior</i> (S. 188–239). Boston: Harvard University Press.</p>
+      <p>Berger, J. (2014). Word of mouth and interpersonal communication: A review and directions for future research. <i>Journal of Consumer Psychology, 24</i>(4), 586–607. https://doi.org/10.1016/j.jcps.2014.05.002</p>
+      <p>Dietrich, A. (2025, 5. Juni). <i>Welches ist die digitalste Schweizer Retailbank im Privatkundengeschäft 2025?</i> IFZ Retail Banking Blog, Hochschule Luzern. Abgerufen von https://hub.hslu.ch/retailbanking/welches-ist-die-digitalste-schweizer-retailbank-im-privatkundengeschaeft-2025/</p>
+      <p>Fink, K.-J. (2014). <i>Empfehlungsmarketing: Königsweg der Neukundengewinnung</i> (6., ergänzte Auflage). Wiesbaden: Springer Gabler.</p>
+      <p>Hennig-Thurau, T., Gwinner, K. P., Walsh, G. &amp; Gremler, D. D. (2004). Electronic Word-of-Mouth via Consumer-Opinion Platforms: What Motivates Consumers to Articulate Themselves on the Internet? <i>Journal of Interactive Marketing, 18</i>(1), 38–52.</p>
+      <p>Lis, B. &amp; Korchmar, S. (2013). <i>Digitales Empfehlungsmarketing: Konzeption, Theorien und Determinanten zur Glaubwürdigkeit des Electronic Word-of-Mouth (EWOM).</i> Wiesbaden: Springer Gabler.</p>
+      <p>Reichheld, F. F. (2003). The One Number You Need to Grow. <i>Harvard Business Review, 81</i>(12), 46–54.</p>
+      <p>Schmitt, P., Skiera, B. &amp; Van den Bulte, C. (2011). Referral Programs and Customer Value. <i>Journal of Marketing, 75</i>(1), 46–59.</p>
+      <p>Trusov, M., Bucklin, R. E. &amp; Pauwels, K. (2009). Effects of Word-of-Mouth Versus Traditional Marketing: Findings from an Internet Social Networking Site. <i>Journal of Marketing, 73</i>(5), 90–102.</p>
+      <p>Van den Bulte, C., Bayer, E., Skiera, B. &amp; Schmitt, P. (2018). How Customer Referral Programs Turn Social Capital into Economic Capital. <i>Journal of Marketing Research, 55</i>(1), 132–146.</p>
+      <p>Villanueva, J., Yoo, S. &amp; Hanssens, D. M. (2008). The Impact of Marketing-Induced Versus Word-of-Mouth Customer Acquisition on Customer Equity Growth. <i>Journal of Marketing Research, 45</i>(1), 48–59.</p>
+    </div>
+    <h2>Weitere Quellen (Praxis-, Unternehmens- und Branchenquellen)</h2>
+    <div class="srcgrid">
+      <p>Bank Cler AG. (2026). <i>Zak Referral-Programm.</i> Abgerufen von https://www.cler.ch/de/info/zak/referral</p>
+      <p>revDSG. (2023). <i>Bundesgesetz über den Datenschutz (DSG) vom 25. September 2020 (Stand am 1. September 2023), SR 235.1.</i> Abgerufen von https://www.fedlex.admin.ch/eli/cc/2022/491/de</p>
+      <p>Nielsen. (2015). <i>Global Trust in Advertising: Winning Strategies for an Evolving Media Landscape.</i> The Nielsen Company. Abgerufen von https://www.nielsen.com/insights/2015/global-trust-in-advertising-2015/</p>
+      <p>Hafner, N. (2026, 3. Februar). <i>Loyalität ist der Schlüssel zum Umsatz.</i> cmm360. Abgerufen von https://www.cmm360.ch/artikel/loyalitaet-ist-der-schluessel-zum-umsatz/</p>
+      <p>Luzerner Kantonalbank (LUKB). (2025). <i>fluks 3a Empfehlungsprogramm.</i> Abgerufen von https://www.lukb.ch/private/vorsorgen/produkte/fluks3a</p>
+      <p>N26 GmbH. (2026). <i>Freunde einladen.</i> Abgerufen von https://n26.com/de-ch/freunde-einladen</p>
+      <p>Revolut Ltd. (2026). <i>Referral-Kampagne – Bedingungen und Konditionen.</i> Abgerufen von https://help.revolut.com/de-CH/help/referrals/more-help-with-referrals/referrals-new/what-are-the-conditions-of-the-referral-campaign/</p>
+      <p>Saxo Bank AG. (2025). <i>Empfehlungsprogramm für Konten.</i> Abgerufen von https://www.home.saxo/de-ch/accounts/referrals</p>
+      <p>UBS Switzerland AG. (2026). <i>KeyClub – das Bonusprogramm der UBS.</i> Abgerufen von https://www.ubs.com/ch/de/services/keyclub.html</p>
+      <p>Yuh AG. (2026). <i>Yuh Referral-Programm.</i> Abgerufen von https://www.yuh.com/de/referral/</p>
+    </div>
+    <div class="pager"><button data-v="v7"><svg class="ic" style="width:16px;height:16px"><use href="#i-back"/></svg>Fazit</button><button class="next" data-v="home">Zur&uuml;ck zur &Uuml;bersicht <svg class="ic" style="width:16px;height:16px"><use href="#i-chev"/></svg></button></div>
+  </section>
+
+</div>
+
+<script>
+  function showView(id){
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.id===id); });
+    document.querySelectorAll('#menu button').forEach(function(b){ b.classList.toggle('active', b.dataset.v===id); });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-v]');
+    if(t){ showView(t.dataset.v); }
+  });
+  function showScreen(s){
+    document.querySelectorAll('#phone .screen').forEach(function(sc){ sc.classList.toggle('on', sc.dataset.s===s); });
+    document.querySelectorAll('#flow button').forEach(function(b){ b.classList.toggle('active', b.dataset.s===s); });
+  }
+  document.querySelectorAll('#flow button').forEach(function(b){ b.addEventListener('click', function(){ showScreen(b.dataset.s); }); });
+  (function(){
+    var rows = document.querySelectorAll('#chart .row');
+    rows.forEach(function(r){
+      r.addEventListener('click', function(){
+        var b = r.dataset.b;
+        document.querySelectorAll('#cmptbl tr').forEach(function(tr){ tr.classList.remove('hl'); });
+        document.querySelectorAll('#cmptbl [data-b="'+b+'"]').forEach(function(th){
+          var idx = Array.prototype.indexOf.call(th.parentNode.children, th);
+          document.querySelectorAll('#cmptbl tr').forEach(function(tr){
+            if(tr.children[idx]) tr.children[idx].classList.add('hl');
+          });
+        });
+      });
+    });
+  })();
+</script>
+</body>
+</html>
